@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint 'lib/**/*.js' --fix",
     "compile": "rm -rf lib/* && babel src -d lib --watch",
-    "build": "node ./scripts/build.js"
+    "prepublishOnly": "rm -rf lib/* && babel src -d lib"
   },
   "keywords": [
     "javascript",
