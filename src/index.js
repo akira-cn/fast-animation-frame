@@ -10,7 +10,8 @@ function nowtime() {
 }
 /* eslint-enable no-undef */
 
-let _requestAnimationFrame
+let _requestAnimationFrame,
+  _cancelAnimationFrame
 
 if(typeof requestAnimationFrame === 'undefined') {
   _requestAnimationFrame = function (fn) {
@@ -18,8 +19,12 @@ if(typeof requestAnimationFrame === 'undefined') {
       fn(nowtime())
     }, 16)
   }
+  _cancelAnimationFrame = function (id) {
+    return clearTimeout(id)
+  }
 } else {
   _requestAnimationFrame = requestAnimationFrame
+  _cancelAnimationFrame = cancelAnimationFrame
 }
 
 const steps = []
@@ -43,6 +48,10 @@ const FastAnimationFrame = {
   },
   cancelAnimationFrame(id) {
     delete steps[id]
+    if(!steps.length && timerId) {
+      _cancelAnimationFrame(timerId)
+      timerId = null
+    }
   },
 }
 
