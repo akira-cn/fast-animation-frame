@@ -27,28 +27,28 @@ if(typeof requestAnimationFrame === 'undefined') {
   _cancelAnimationFrame = cancelAnimationFrame
 }
 
-const steps = []
-let timerId,
-  id = 0
+const steps = new Map()
+let timerId
 
 const FastAnimationFrame = {
   requestAnimationFrame(step) {
-    steps[++id] = step
+    const id = Symbol('requestId')
+    steps.set(id, step)
 
     if(timerId == null) {
       timerId = _requestAnimationFrame((t) => {
         timerId = null
-        Object.entries(steps).forEach(([id, callback]) => {
+        ;[...steps].forEach(([id, callback]) => {
           callback(t)
-          delete steps[id]
+          steps.delete(id)
         })
       })
     }
     return id
   },
   cancelAnimationFrame(id) {
-    delete steps[id]
-    if(!steps.length && timerId) {
+    steps.delete(id)
+    if(!steps.size && timerId) {
       _cancelAnimationFrame(timerId)
       timerId = null
     }
