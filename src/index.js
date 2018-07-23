@@ -13,7 +13,7 @@ function nowtime() {
 let _requestAnimationFrame,
   _cancelAnimationFrame
 
-if(typeof requestAnimationFrame === 'undefined') {
+if(typeof global.requestAnimationFrame === 'undefined') {
   _requestAnimationFrame = function (fn) {
     return setTimeout(() => {
       fn(nowtime())
@@ -23,36 +23,38 @@ if(typeof requestAnimationFrame === 'undefined') {
     return clearTimeout(id)
   }
 } else {
-  _requestAnimationFrame = requestAnimationFrame
-  _cancelAnimationFrame = cancelAnimationFrame
+  _requestAnimationFrame = global.requestAnimationFrame
+  _cancelAnimationFrame = global.cancelAnimationFrame
 }
 
 const steps = new Map()
 let timerId
 
-const FastAnimationFrame = {
-  requestAnimationFrame(step) {
-    const id = Symbol('requestId')
-    steps.set(id, step)
+const requestAnimationFrame = (step) => {
+  const id = Symbol('requestId')
+  steps.set(id, step)
 
-    if(timerId == null) {
-      timerId = _requestAnimationFrame((t) => {
-        timerId = null
-        ;[...steps].forEach(([id, callback]) => {
-          callback(t)
-          steps.delete(id)
-        })
-      })
-    }
-    return id
-  },
-  cancelAnimationFrame(id) {
-    steps.delete(id)
-    if(!steps.size && timerId) {
-      _cancelAnimationFrame(timerId)
+  if(timerId == null) {
+    timerId = _requestAnimationFrame((t) => {
       timerId = null
-    }
-  },
+      ;[...steps].forEach(([id, callback]) => {
+        callback(t)
+        steps.delete(id)
+      })
+    })
+  }
+  return id
 }
 
-module.exports = FastAnimationFrame
+const cancelAnimationFrame = (id) => {
+  steps.delete(id)
+  if(!steps.size && timerId) {
+    _cancelAnimationFrame(timerId)
+    timerId = null
+  }
+}
+
+export {
+  requestAnimationFrame,
+  cancelAnimationFrame,
+}
